@@ -17,7 +17,7 @@ function App() {
             <nav className="navbar">
             <div className="logo">
     <i className="fas fa-solar-panel"></i>
-    <span>TATA Solar Plant</span>
+    <span style={{ marginLeft: '10px' }}>TATA Solar Plant</span>
 </div>
                 <ul className="nav-links">
                     <li><a href="#home">Home</a></li>
