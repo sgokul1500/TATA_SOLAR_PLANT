@@ -1,3 +1,7 @@
+html {
+  scroll-behavior: smooth;
+}
+
 .app-container {
   min-height: 100vh;
   display: flex;
@@ -6,55 +10,55 @@
 
 /* Navbar Styles */
 .navbar {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(0, 48, 87, 0.95); /* TATA brand dark blue with slight transparency */
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: fixed;
-  width: calc(100% - 4rem); /* Account for padding */
+  width: 100%;
   top: 0;
   z-index: 1000;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
+
 
 .logo {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+  color: white; /* Changed logo color to white */
 }
 
-.logo img {
-  height: 40px;
+.menu-icon {
+  display: none;
+  cursor: pointer;
+  font-size: 1.5rem;
 }
 
 .nav-links {
   display: flex;
   gap: 2rem;
   list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .nav-links a {
-  color: #333;
+  color: white; /* Changed text color to white for better contrast */
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.3s;
+  transition: all 0.3s;
 }
 
 .nav-links a:hover {
-  color: #2196f3;
+  color: #ffd700; /* Gold color on hover */
 }
+
 
 /* Hero Section */
 .hero-section {
   height: 100vh;
-  /* In App.css */
-.hero-section {
   background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
-              url('/assets/solar-plant-hero.jpg') center/cover;
-  /* rest of the styles */
-}
-  margin-top: 60px; /* Add margin to prevent navbar overlap */
+              url('https://images.unsplash.com/photo-1509391366360-2e959784a276') center/cover;
+  margin-top: 60px;
   padding: 2rem;
   display: flex;
   align-items: center;
@@ -63,16 +67,46 @@
   color: white;
 }
 
-.hero-content h1 {
-  font-size: 3.5rem;
-  margin-bottom: 1rem;
-  animation: fadeInUp 1s ease-out;
+/* About Section */
+.about-section {
+  background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)),
+              url('https://images.unsplash.com/photo-1509391366360-2e959784a276') center/cover;
+  padding: 4rem 2rem;
+  color: white;
 }
 
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.about-item {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2rem;
+  border-radius: 8px;
+  backdrop-filter: blur(5px);
+}
+
+.about-item h3 {
+  color: #ffd700;
+  margin-bottom: 1rem;
+}
+
+.about-item ol {
+  margin-left: 1.5rem;
+}
+
+.about-item li {
+  margin: 0.5rem 0;
+}
 /* Statistics Section */
 .stats-section {
+  min-height: 100vh;
+  background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)),
+              url('https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9') center/cover;
   padding: 4rem 2rem;
-  margin-top: 2rem;
 }
 
 .stats-grid {
@@ -87,15 +121,22 @@
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
 }
 
 .stat-card:hover {
   transform: translateY(-5px);
 }
 
+/* Contact Section */
+.contact-section {
+  background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)),
+              url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab') center/cover;
+}
+
 /* Footer Styles */
 .footer {
-  background: #333;
+  background: transparent;
   color: white;
   padding: 3rem 2rem 1rem;
   margin-top: auto;
@@ -127,6 +168,37 @@
   border-top: 1px solid rgba(255,255,255,0.1);
 }
 
+/* Mobile Responsive Styles */
+@media screen and (max-width: 768px) {
+  .menu-icon {
+      display: block;
+  }
+
+  .nav-links {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      flex-direction: column;
+      padding: 1rem 0;
+      text-align: center;
+  }
+
+  .nav-links.active {
+      display: flex;
+  }
+
+  .nav-links li {
+      margin: 1rem 0;
+  }
+
+  .hero-content h1 {
+      font-size: 2rem;
+  }
+}
+
 /* Animations */
 @keyframes fadeInUp {
   from {
@@ -148,4 +220,73 @@
 .animate-on-scroll.visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Solar Animation Section */
+.solar-animation-section {
+  min-height: 60vh;
+  background: linear-gradient(to bottom, #87CEEB, #1E90FF);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.solar-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.sun {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 60px;
+  color: #FFD700;
+  animation: glow 2s infinite alternate;
+}
+
+.rays {
+  position: absolute;
+  top: 100px;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background: repeating-linear-gradient(
+      90deg,
+      #FFD700 0%,
+      transparent 2%,
+      transparent 5%
+  );
+  animation: rayAnimation 2s infinite linear;
+  opacity: 0.6;
+}
+
+.solar-panel {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 80px;
+  color: #1a237e;
+  animation: absorb 2s infinite;
+}
+
+@keyframes glow {
+  from { text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700; }
+  to { text-shadow: 0 0 20px #FFD700, 0 0 30px #FFD700; }
+}
+
+@keyframes rayAnimation {
+  from { background-position: 0 0; }
+  to { background-position: 100% 0; }
+}
+
+@keyframes absorb {
+  0% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.1); }
+  100% { transform: translateX(-50%) scale(1); }
 }
