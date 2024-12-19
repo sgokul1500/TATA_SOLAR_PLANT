@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { Line } from 'react-chartjs-2';
 import './App.css';
 
 function App() {
@@ -19,23 +20,28 @@ function App() {
     }, []);
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-        try {
-            const response = await axios.post('http://localhost:5000/api/generate-curve', {
-                acCapacity: parseFloat(acCapacity),
-                dcCapacity: parseFloat(dcCapacity),
-                incrementalDcCapacity: parseFloat(incrementalDcCapacity),
-                timeInterval: parseInt(timeInterval)
-            });
-            setGraphData(response.data);
-        } catch (error) {
-            console.error('Error generating curve:', error);
-            alert('Error generating curve. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+      e.preventDefault();
+      setIsLoading(true);
+      try {
+          const response = await axios.post('http://localhost:5000/api/generate-curve', {
+              acCapacity: parseFloat(acCapacity),
+              dcCapacity: parseFloat(dcCapacity),
+              incrementalDcCapacity: parseFloat(incrementalDcCapacity),
+              timeInterval: parseInt(timeInterval)
+          });
+          
+          if (response.data.error) {
+              throw new Error(response.data.error);
+          }
+          
+          setGraphData(response.data);
+      } catch (error) {
+          console.error('Error generating curve:', error);
+          alert('Error generating curve: ' + error.message);
+      } finally {
+          setIsLoading(false);
+      }
+  };
 
     const scrollToSection = (sectionId) => {
         const element = document.getElementById(sectionId);
