@@ -44,54 +44,40 @@ function App() {
       e.preventDefault();
       setIsLoading(true);
       try {
-          // First curve - Original AC/DC curve
-          const originalResponse = await axios.post('http://localhost:5000/api/generate-curve', {
+          const response = await axios.post('http://localhost:5000/api/generate-curve', {
               acCapacity: parseFloat(acCapacity),
               dcCapacity: parseFloat(dcCapacity),
               timeInterval: parseInt(timeInterval)
           });
   
-          // Second curve - Incremental DC curve
           const incrementalResponse = await axios.post('http://localhost:5000/api/generate-curve', {
               acCapacity: parseFloat(acCapacity),
               dcCapacity: parseFloat(dcCapacity) + parseFloat(incrementalDcCapacity),
               timeInterval: parseInt(timeInterval)
           });
   
-          if (originalResponse.data.error || incrementalResponse.data.error) {
-              throw new Error('Error generating curves');
-          }
-  
-          // Combine both datasets for the graph
-          const combinedGraphData = {
-              labels: originalResponse.data.labels,
+          const combinedData = {
+              labels: response.data.labels,
               datasets: [
                   {
                       label: 'Original AC/DC Curve',
-                      data: originalResponse.data.values,
+                      data: response.data.values,
                       borderColor: 'rgb(75, 192, 192)',
-                      tension: 0.1,
-                      fill: false
+                      tension: 0.1
                   },
                   {
                       label: 'Incremental DC Curve',
                       data: incrementalResponse.data.values,
                       borderColor: 'rgb(255, 99, 132)',
-                      tension: 0.1,
-                      fill: false
+                      tension: 0.1
                   }
               ]
           };
   
-          setGraphData({
-              graphData: combinedGraphData,
-              shoulder_area_original: originalResponse.data.shoulder_area,
-              shoulder_area_incremented: incrementalResponse.data.shoulder_area
-          });
-  
+          setGraphData(combinedData);
       } catch (error) {
-          console.error('Error generating curves:', error);
-          alert('Error generating curves: ' + error.message);
+          console.error('Error:', error);
+          alert('Error generating curves');
       } finally {
           setIsLoading(false);
       }
