@@ -5,12 +5,37 @@ import './App.css';
 function App() {
     const [data, setData] = useState(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [acCapacity, setAcCapacity] = useState('');
+    const [dcCapacity, setDcCapacity] = useState('');
+    const [incrementalDcCapacity, setIncrementalDcCapacity] = useState('');
+    const [timeInterval, setTimeInterval] = useState('15');
+    const [graphData, setGraphData] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         axios.get('http://localhost:5000/api/data')
             .then(response => setData(response.data))
             .catch(error => console.error(error));
     }, []);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        try {
+            const response = await axios.post('http://localhost:5000/api/generate-curve', {
+                acCapacity: parseFloat(acCapacity),
+                dcCapacity: parseFloat(dcCapacity),
+                incrementalDcCapacity: parseFloat(incrementalDcCapacity),
+                timeInterval: parseInt(timeInterval)
+            });
+            setGraphData(response.data);
+        } catch (error) {
+            console.error('Error generating curve:', error);
+            alert('Error generating curve. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const scrollToSection = (sectionId) => {
         const element = document.getElementById(sectionId);
@@ -48,35 +73,100 @@ function App() {
             </section>
 
             <section id="about" className="about-section">
-    <div className="about-content">
-        <h2>About Tata Power Solar</h2>
-        <div className="about-grid">
-            <div className="about-item">
-                <h3>Company Overview</h3>
-                <p>Tata Power Solar, a wholly owned subsidiary of Tata Power, is India's largest integrated solar company with 35 years of experience in providing clean energy solutions. We have commissioned several landmark projects including one of the world's largest rooftop solar power plants of 16MW at Punjab.</p>
-            </div>
-            <div className="about-item">
-                <h3>Solar Power Process</h3>
-                <p>Our solar power generation process involves:</p>
-                <ol>
-                    <li>Photovoltaic cells absorb sunlight, converting solar energy into DC electricity</li>
-                    <li>Inverters convert DC power to AC power for grid compatibility</li>
-                    <li>Transformed electricity is distributed through the power grid</li>
-                    <li>Smart meters track energy production and consumption</li>
-                </ol>
-            </div>
-            <div className="about-item">
-                <h3>Our Achievements</h3>
-                <p>• Over 3.8GW of solar projects executed
-                   • India's largest solar EPC company
-                   • First company to achieve 1GW solar manufacturing
-                   • Pioneered India's first solar cell and module manufacturing facility</p>
-            </div>
-        </div>
-    </div>
-</section>
+                <div className="about-content">
+                    <h2>About Tata Power Solar</h2>
+                    <div className="about-grid">
+                        <div className="about-item">
+                            <h3>Company Overview</h3>
+                            <p>Tata Power Solar, a wholly owned subsidiary of Tata Power, is India's largest integrated solar company with 35 years of experience in providing clean energy solutions.</p>
+                        </div>
+                        <div className="about-item">
+                            <h3>Solar Power Process</h3>
+                            <p>Our solar power generation process involves:</p>
+                            <ol>
+                                <li>Photovoltaic cells absorb sunlight, converting solar energy into DC electricity</li>
+                                <li>Inverters convert DC power to AC power for grid compatibility</li>
+                                <li>Transformed electricity is distributed through the power grid</li>
+                                <li>Smart meters track energy production and consumption</li>
+                            </ol>
+                        </div>
+                        <div className="about-item">
+                            <h3>Our Achievements</h3>
+                            <p>• Over 3.8GW of solar projects executed
+                               • India's largest solar EPC company
+                               • First company to achieve 1GW solar manufacturing
+                               • Pioneered India's first solar cell and module manufacturing facility</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section id="statistics" className="stats-section">
-                <h2>Plant Statistics</h2>
+                <h2>Solar Plant Analysis</h2>
+                <div className="input-form-container">
+                    <form onSubmit={handleSubmit} className="solar-input-form">
+                        <div className="form-group">
+                            <label htmlFor="acCapacity">Enter AC Capacity (MW)</label>
+                            <input
+                                type="number"
+                                id="acCapacity"
+                                value={acCapacity}
+                                onChange={(e) => setAcCapacity(e.target.value)}
+                                required
+                            />
+                        </div>
+                        
+                        <div className="form-group">
+                            <label htmlFor="dcCapacity">Enter DC Capacity (MW)</label>
+                            <input
+                                type="number"
+                                id="dcCapacity"
+                                value={dcCapacity}
+                                onChange={(e) => setDcCapacity(e.target.value)}
+                                required
+                            />
+                        </div>
+                        
+                        <div className="form-group">
+                            <label htmlFor="incrementalDcCapacity">Enter Incremental DC Capacity (MW)</label>
+                            <input
+                                type="number"
+                                id="incrementalDcCapacity"
+                                value={incrementalDcCapacity}
+                                onChange={(e) => setIncrementalDcCapacity(e.target.value)}
+                                required
+                            />
+                        </div>
+                        
+                        <div className="form-group">
+                            <label htmlFor="timeInterval">Select Time Interval</label>
+                            <select
+                                id="timeInterval"
+                                value={timeInterval}
+                                onChange={(e) => setTimeInterval(e.target.value)}
+                            >
+                                <option value="15">0-15 minutes</option>
+                                <option value="30">0-30 minutes</option>
+                                <option value="60">1 hour</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" className="generate-btn" disabled={isLoading}>
+                            {isLoading ? 'Generating...' : 'Generate Curve'}
+                        </button>
+                    </form>
+                </div>
+
+                {graphData && (
+                    <div className="graph-container">
+                        <img src={`data:image/png;base64,${graphData.graph}`} alt="Solar Irradiation Curve" />
+                        <div className="graph-stats">
+                            <p>Original Shoulder Area: {graphData.shoulder_area_original.toFixed(2)} MW-min</p>
+                            <p>Incremented Shoulder Area: {graphData.shoulder_area_incremented.toFixed(2)} MW-min</p>
+                        </div>
+                    </div>
+                )}
+
                 <div className="stats-grid">
                     <div className="stat-card animate-on-scroll">
                         <h3>Power Generated</h3>
