@@ -44,12 +44,14 @@ function App() {
       e.preventDefault();
       setIsLoading(true);
       try {
+          // Get original curve data
           const response = await axios.post('http://localhost:5000/api/generate-curve', {
               acCapacity: parseFloat(acCapacity),
               dcCapacity: parseFloat(dcCapacity),
               timeInterval: parseInt(timeInterval)
           });
   
+          // Get incremental curve data
           const incrementalResponse = await axios.post('http://localhost:5000/api/generate-curve', {
               acCapacity: parseFloat(acCapacity),
               dcCapacity: parseFloat(dcCapacity) + parseFloat(incrementalDcCapacity),
@@ -60,16 +62,32 @@ function App() {
               labels: response.data.labels,
               datasets: [
                   {
-                      label: 'Original AC/DC Curve',
+                      label: 'Original DC Output',
                       data: response.data.values,
                       borderColor: 'rgb(75, 192, 192)',
-                      tension: 0.1
+                      tension: 0.1,
+                      fill: false
                   },
                   {
-                      label: 'Incremental DC Curve',
-                      data: incrementalResponse.data.values,
+                      label: 'Original AC Output (Clipped)',
+                      data: response.data.clippedValues,
                       borderColor: 'rgb(255, 99, 132)',
-                      tension: 0.1
+                      tension: 0.1,
+                      fill: false
+                  },
+                  {
+                      label: 'Incremental DC Output',
+                      data: incrementalResponse.data.values,
+                      borderColor: 'rgb(153, 102, 255)',
+                      tension: 0.1,
+                      fill: false
+                  },
+                  {
+                      label: 'Incremental AC Output (Clipped)',
+                      data: incrementalResponse.data.clippedValues,
+                      borderColor: 'rgb(255, 159, 64)',
+                      tension: 0.1,
+                      fill: false
                   }
               ]
           };
@@ -82,14 +100,6 @@ function App() {
           setIsLoading(false);
       }
   };
-    const scrollToSection = (sectionId) => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-            setIsMenuOpen(false);
-        }
-    };
-
     return (
         <div className="app-container">
             <nav className="navbar">
@@ -111,11 +121,17 @@ function App() {
             </nav>
 
             <section id="home" className="hero-section">
-                <div className="hero-content">
-                    <h1>Powering the Future with Solar Energy</h1>
-                    <p>Sustainable. Renewable. Efficient.</p>
-                </div>
-            </section>
+    <div className="hero-slider">
+        <div className="slide"></div>
+        <div className="slide"></div>
+        <div className="slide"></div>
+        <div className="slide"></div>
+    </div>
+    <div className="hero-content">
+        <h1>Powering the Future with Solar Energy</h1>
+        <p>Harnessing the Sun's Power Today, for a Brighter Tomorrow</p>
+    </div>
+</section>
 
             <section id="about" className="about-section">
                 <div className="about-content">
@@ -254,23 +270,10 @@ function App() {
 )}
 
 
-    <div className="stats-grid">
-        <div className="stat-card animate-on-scroll">
-            <h3>Power Generated</h3>
-            {data ? <p>{data.powerGenerated} MW</p> : <p>Loading...</p>}
-        </div>
-        <div className="stat-card animate-on-scroll">
-            <h3>Efficiency</h3>
-            <p>98.5%</p>
-        </div>
-        <div className="stat-card animate-on-scroll">
-            <h3>CO2 Saved</h3>
-            <p>1250 Tons</p>
-        </div>
-    </div>
+    
 </section>
 
-            <section id="contact" className="contact-section">
+<section id="contact" className="contact-section">
                 <footer className="footer">
                     <div className="footer-content">
                         <div className="footer-section">
@@ -289,10 +292,16 @@ function App() {
                         <div className="footer-section">
                             <h4>Follow Us</h4>
                             <div className="social-links">
-                                <a href="#"><i className="fab fa-facebook"></i></a>
-                                <a href="#"><i className="fab fa-twitter"></i></a>
-                                <a href="#"><i className="fab fa-linkedin"></i></a>
-                            </div>
+                    <a href="https://www.facebook.com/TataPower/" target="_blank" rel="noopener noreferrer">
+                        <i className="fab fa-facebook"></i>
+                    </a>
+                    <a href="https://twitter.com/TataPower" target="_blank" rel="noopener noreferrer">
+                        <i className="fab fa-twitter"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/company/tata-power/" target="_blank" rel="noopener noreferrer">
+                        <i className="fab fa-linkedin"></i>
+                    </a>
+                </div>
                         </div>
                     </div>
                     <div className="footer-bottom">
