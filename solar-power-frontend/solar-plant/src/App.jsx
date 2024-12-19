@@ -2,6 +2,27 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Line } from 'react-chartjs-2';
 import './App.css';
+// At the top of App.jsx
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 function App() {
     const [data, setData] = useState(null);
@@ -23,26 +44,58 @@ function App() {
       e.preventDefault();
       setIsLoading(true);
       try {
-          const response = await axios.post('http://localhost:5000/api/generate-curve', {
+          // First curve - Original AC/DC curve
+          const originalResponse = await axios.post('http://localhost:5000/api/generate-curve', {
               acCapacity: parseFloat(acCapacity),
               dcCapacity: parseFloat(dcCapacity),
-              incrementalDcCapacity: parseFloat(incrementalDcCapacity),
               timeInterval: parseInt(timeInterval)
           });
-          
-          if (response.data.error) {
-              throw new Error(response.data.error);
+  
+          // Second curve - Incremental DC curve
+          const incrementalResponse = await axios.post('http://localhost:5000/api/generate-curve', {
+              acCapacity: parseFloat(acCapacity),
+              dcCapacity: parseFloat(dcCapacity) + parseFloat(incrementalDcCapacity),
+              timeInterval: parseInt(timeInterval)
+          });
+  
+          if (originalResponse.data.error || incrementalResponse.data.error) {
+              throw new Error('Error generating curves');
           }
-          
-          setGraphData(response.data);
+  
+          // Combine both datasets for the graph
+          const combinedGraphData = {
+              labels: originalResponse.data.labels,
+              datasets: [
+                  {
+                      label: 'Original AC/DC Curve',
+                      data: originalResponse.data.values,
+                      borderColor: 'rgb(75, 192, 192)',
+                      tension: 0.1,
+                      fill: false
+                  },
+                  {
+                      label: 'Incremental DC Curve',
+                      data: incrementalResponse.data.values,
+                      borderColor: 'rgb(255, 99, 132)',
+                      tension: 0.1,
+                      fill: false
+                  }
+              ]
+          };
+  
+          setGraphData({
+              graphData: combinedGraphData,
+              shoulder_area_original: originalResponse.data.shoulder_area,
+              shoulder_area_incremented: incrementalResponse.data.shoulder_area
+          });
+  
       } catch (error) {
-          console.error('Error generating curve:', error);
-          alert('Error generating curve: ' + error.message);
+          console.error('Error generating curves:', error);
+          alert('Error generating curves: ' + error.message);
       } finally {
           setIsLoading(false);
       }
   };
-
     const scrollToSection = (sectionId) => {
         const element = document.getElementById(sectionId);
         if (element) {
@@ -108,86 +161,128 @@ function App() {
             </section>
 
             <section id="statistics" className="stats-section">
-                <h2>Solar Plant Analysis</h2>
-                <div className="input-form-container">
-                    <form onSubmit={handleSubmit} className="solar-input-form">
-                        <div className="form-group">
-                            <label htmlFor="acCapacity">Enter AC Capacity (MW)</label>
-                            <input
-                                type="number"
-                                id="acCapacity"
-                                value={acCapacity}
-                                onChange={(e) => setAcCapacity(e.target.value)}
-                                required
-                            />
-                        </div>
-                        
-                        <div className="form-group">
-                            <label htmlFor="dcCapacity">Enter DC Capacity (MW)</label>
-                            <input
-                                type="number"
-                                id="dcCapacity"
-                                value={dcCapacity}
-                                onChange={(e) => setDcCapacity(e.target.value)}
-                                required
-                            />
-                        </div>
-                        
-                        <div className="form-group">
-                            <label htmlFor="incrementalDcCapacity">Enter Incremental DC Capacity (MW)</label>
-                            <input
-                                type="number"
-                                id="incrementalDcCapacity"
-                                value={incrementalDcCapacity}
-                                onChange={(e) => setIncrementalDcCapacity(e.target.value)}
-                                required
-                            />
-                        </div>
-                        
-                        <div className="form-group">
-                            <label htmlFor="timeInterval">Select Time Interval</label>
-                            <select
-                                id="timeInterval"
-                                value={timeInterval}
-                                onChange={(e) => setTimeInterval(e.target.value)}
-                            >
-                                <option value="15">0-15 minutes</option>
-                                <option value="30">0-30 minutes</option>
-                                <option value="60">1 hour</option>
-                            </select>
-                        </div>
-                        
-                        <button type="submit" className="generate-btn" disabled={isLoading}>
-                            {isLoading ? 'Generating...' : 'Generate Curve'}
-                        </button>
-                    </form>
-                </div>
+    <h2>Solar Plant Analysis</h2>
+    <div className="input-form-container">
+        <form onSubmit={handleSubmit} className="solar-input-form">
+            <div className="form-group">
+                <label htmlFor="acCapacity">Enter AC Capacity (MW)</label>
+                <input
+                    type="number"
+                    id="acCapacity"
+                    value={acCapacity}
+                    onChange={(e) => setAcCapacity(e.target.value)}
+                    required
+                />
+            </div>
+            
+            <div className="form-group">
+                <label htmlFor="dcCapacity">Enter DC Capacity (MW)</label>
+                <input
+                    type="number"
+                    id="dcCapacity"
+                    value={dcCapacity}
+                    onChange={(e) => setDcCapacity(e.target.value)}
+                    required
+                />
+            </div>
+            
+            <div className="form-group">
+                <label htmlFor="incrementalDcCapacity">Enter Incremental DC Capacity (MW)</label>
+                <input
+                    type="number"
+                    id="incrementalDcCapacity"
+                    value={incrementalDcCapacity}
+                    onChange={(e) => setIncrementalDcCapacity(e.target.value)}
+                    required
+                />
+            </div>
+            
+            <div className="form-group">
+                <label htmlFor="timeInterval">Select Time Interval</label>
+                <select
+                    id="timeInterval"
+                    value={timeInterval}
+                    onChange={(e) => setTimeInterval(e.target.value)}
+                >
+                    <option value="15">15 minutes</option>
+                    <option value="30">30 minutes</option>
+                    <option value="60">1 hour</option>
+                </select>
+            </div>
+            
+            <button type="submit" className="generate-btn" disabled={isLoading}>
+                {isLoading ? 'Generating...' : 'Generate Curve'}
+            </button>
+        </form>
+    </div>
 
-                {graphData && (
-                    <div className="graph-container">
-                        <img src={`data:image/png;base64,${graphData.graph}`} alt="Solar Irradiation Curve" />
-                        <div className="graph-stats">
-                            <p>Original Shoulder Area: {graphData.shoulder_area_original.toFixed(2)} MW-min</p>
-                            <p>Incremented Shoulder Area: {graphData.shoulder_area_incremented.toFixed(2)} MW-min</p>
-                        </div>
-                    </div>
-                )}
+    {isLoading ? (
+    <div className="loading-container">
+        <p>Generating curves...</p>
+    </div>
+) : graphData && (
+    <div className="graph-container">
+        <Line 
+            data={graphData}
+            options={{
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Solar Power Generation Comparison'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Power Output (MW)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    }
+                }
+            }}
+        />
+        <div className="graph-stats">
+            <h3>Graph Statistics</h3>
+            <p>Original Shoulder Area: {graphData.shoulder_area_original?.toFixed(2)} MW-min</p>
+            <p>Incremented Shoulder Area: {graphData.shoulder_area_incremented?.toFixed(2)} MW-min</p>
+            <p>AC Capacity: {acCapacity} MW</p>
+            <p>DC Capacity: {dcCapacity} MW</p>
+            <p>Incremental DC: {incrementalDcCapacity} MW</p>
+        </div>
+    </div>
+)}
 
-                <div className="stats-grid">
-                    <div className="stat-card animate-on-scroll">
-                        <h3>Power Generated</h3>
-                        {data ? <p>{data.powerGenerated} MW</p> : <p>Loading...</p>}
-                    </div>
-                    <div className="stat-card animate-on-scroll">
-                        <h3>Efficiency</h3>
-                        <p>98.5%</p>
-                    </div>
-                    <div className="stat-card animate-on-scroll">
-                        <h3>CO2 Saved</h3>
-                        <p>1250 Tons</p>
-                    </div>
-                </div>
-            </section>
+
+    <div className="stats-grid">
+        <div className="stat-card animate-on-scroll">
+            <h3>Power Generated</h3>
+            {data ? <p>{data.powerGenerated} MW</p> : <p>Loading...</p>}
+        </div>
+        <div className="stat-card animate-on-scroll">
+            <h3>Efficiency</h3>
+            <p>98.5%</p>
+        </div>
+        <div className="stat-card animate-on-scroll">
+            <h3>CO2 Saved</h3>
+            <p>1250 Tons</p>
+        </div>
+    </div>
+</section>
 
             <section id="contact" className="contact-section">
                 <footer className="footer">
