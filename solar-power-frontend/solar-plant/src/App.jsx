@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Line } from 'react-chartjs-2';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+const [selectedFile, setSelectedFile] = useState(null);
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -27,40 +28,46 @@ ChartJS.register(
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [acCapacity, setAcCapacity] = useState('');
-  const [dcCapacity, setDcCapacity] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
   const [incrementalDcCapacity, setIncrementalDcCapacity] = useState('');
-  const [timeInterval, setTimeInterval] = useState('15');
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(false);
   const [graphData, setGraphData] = useState(null);
 
+  const handleFileChange = (event) => {
+    setSelectedFile(event.target.files[0]);
+  };
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-        const formattedStartDate = startDate.toLocaleDateString('en-GB'); // DD/MM/YYYY
-        const formattedEndDate = endDate.toLocaleDateString('en-GB');
-
-        const response = await axios.post('http://localhost:5000/api/generate-curve', {
-            acCapacity: parseFloat(acCapacity),
-            dcCapacity: parseFloat(dcCapacity),
-            incrementalDcCapacity: parseFloat(incrementalDcCapacity),
-            timeInterval: parseInt(timeInterval),
-            startDate: formattedStartDate,
-            endDate: formattedEndDate
-        });
-
-        setGraphData(response.data);
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error generating curves. Please check your inputs and try again.');
-    } finally {
-        setIsLoading(false);
-    }
-};
-
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        
+        try {
+            const formData = new FormData();
+            if (!selectedFile) {
+                throw new Error('Please select a file');
+            }
+            formData.append('file', selectedFile);
+            formData.append('incrementalDcCapacity', incrementalDcCapacity);
+            formData.append('startDate', startDate.toLocaleDateString('en-GB'));
+            formData.append('endDate', endDate.toLocaleDateString('en-GB'));
+    
+            const response = await axios.post('http://localhost:5000/api/generate-curve', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+    
+            setGraphData(response.data);
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error generating curves. Please check your inputs and try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
   return (
     <div className="app-container">
       {/* Navbar Section */}
@@ -104,10 +111,10 @@ function App() {
           <div className="about-item">
             <h3>How It Works</h3>
             <ol>
-              <li>Input your plant specifications</li>
+              <li>Upload your Excel file</li>
+              <li>Input incremental DC capacity</li>
               <li>Select your desired time interval</li>
               <li>Generate detailed power curves</li>
-              <li>Analyze the results</li>
             </ol>
           </div>
           <div className="about-item">
@@ -118,108 +125,134 @@ function App() {
       </section>
 
       {/* Statistics Section */}
-      <section id="statistics" className="stats-section">
-        <h2>Solar Plant Analysis</h2>
-        <div className="input-form-container">
-          <form onSubmit={handleSubmit} className="solar-input-form">
+      {/* Statistics Section */}
+<section id="statistics" className="stats-section">
+    <h2>Solar Plant Analysis</h2>
+    <div className="input-form-container">
+        <form onSubmit={handleSubmit} className="solar-input-form">
             <div className="form-group">
-              <label htmlFor="acCapacity">Enter AC Capacity (MW)</label>
-              <input
-                type="number"
-                id="acCapacity"
-                value={acCapacity}
-                onChange={(e) => setAcCapacity(e.target.value)}
-                required
-              />
+                <label htmlFor="file">Upload Excel File</label>
+                <input
+                    type="file"
+                    id="file"
+                    accept=".xlsx,.xls"
+                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                    required
+                    className="file-input"
+                />
             </div>
             
             <div className="form-group">
-              <label htmlFor="dcCapacity">Enter DC Capacity (MW)</label>
-              <input
-                type="number"
-                id="dcCapacity"
-                value={dcCapacity}
-                onChange={(e) => setDcCapacity(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="incrementalDcCapacity">Enter Incremental DC Capacity (MW)</label>
-              <input
-                type="number"
-                id="incrementalDcCapacity"
-                value={incrementalDcCapacity}
-                onChange={(e) => setIncrementalDcCapacity(e.target.value)}
-                required
-              />
+                <label htmlFor="incrementalDcCapacity">Incremental DC Capacity (MW)</label>
+                <input
+                    type="number"
+                    id="incrementalDcCapacity"
+                    value={incrementalDcCapacity}
+                    onChange={(e) => setIncrementalDcCapacity(e.target.value)}
+                    required
+                />
             </div>
 
             <div className="form-group">
-              <label>Start Date</label>
-              <DatePicker
-                selected={startDate}
-                onChange={(date) => setStartDate(date)}
-                dateFormat="dd/MM/yyyy"
-                className="date-picker"
-                required
-              />
+                <label>Start Date</label>
+                <DatePicker
+                    selected={startDate}
+                    onChange={(date) => setStartDate(date)}
+                    dateFormat="dd/MM/yyyy"
+                    className="date-picker"
+                    required
+                    calendarClassName="react-datepicker"
+                />
             </div>
 
             <div className="form-group">
-              <label>End Date</label>
-              <DatePicker
-                selected={endDate}
-                onChange={(date) => setEndDate(date)}
-                dateFormat="dd/MM/yyyy"
-                className="date-picker"
-                minDate={startDate}
-                required
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="timeInterval">Select Time Interval</label>
-              <select
-                id="timeInterval"
-                value={timeInterval}
-                onChange={(e) => setTimeInterval(e.target.value)}
-              >
-                <option value="15">15 minutes</option>
-                <option value="30">30 minutes</option>
-                <option value="60">1 hour</option>
-              </select>
+                <label>End Date</label>
+                <DatePicker
+                    selected={endDate}
+                    onChange={(date) => setEndDate(date)}
+                    dateFormat="dd/MM/yyyy"
+                    className="date-picker"
+                    minDate={startDate}
+                    required
+                    calendarClassName="react-datepicker"
+                />
             </div>
             
             <button type="submit" className="generate-btn" disabled={isLoading}>
-              {isLoading ? 'Generating...' : 'Generate Curve'}
+                {isLoading ? 'Generating...' : 'Generate Curve'}
             </button>
-          </form>
-        </div>
+        </form>
+    </div>
 
-        {isLoading && (
-          <div className="loading-container">
+    {isLoading && (
+        <div className="loading-container">
             <p>Generating curves...</p>
-          </div>
-        )}
+        </div>
+    )}
 
-        {graphData && (
-          <div className="graph-container">
-            <Line data={graphData} options={{
-              responsive: true,
-              plugins: {
-                legend: {
-                  position: 'top',
-                },
-                title: {
-                  display: true,
-                  text: 'Solar Power Generation Curve'
-                }
-              }
-            }} />
-          </div>
-        )}
-      </section>
+    {graphData && graphData.results && graphData.results.map((result, index) => (
+        <div key={index} className="graph-container">
+            <h3>Results for Incremental Generation: {result.incremental_gen} MW</h3>
+            <Line 
+                data={{
+                    labels: graphData.time_intervals,
+                    datasets: [
+                        {
+                            label: 'Reference Curve (Energy, MWh)',
+                            data: result.energy_reference,
+                            borderColor: 'blue',
+                            fill: false
+                        },
+                        {
+                            label: 'Incremental Curve (Energy, MWh)',
+                            data: result.energy_incremental,
+                            borderColor: 'red',
+                            fill: false
+                        },
+                        {
+                            label: 'Clipped Incremental Curve (Energy, MWh)',
+                            data: result.energy_clipped,
+                            borderColor: 'orange',
+                            borderDash: [5, 5],
+                            fill: false
+                        }
+                    ]
+                }}
+                options={{
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Solar Power Generation Curve'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Energy (MWh)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        }
+                    }
+                }}
+            />
+            <div className="losses-info">
+                <p>Total Loss (Without Clipping): {result.losses.without_clipping.toFixed(2)} MWh</p>
+                <p>Total Loss (With Clipping): {result.losses.with_clipping.toFixed(2)} MWh</p>
+            </div>
+        </div>
+    ))}
+</section>
 
       {/* Contact Section */}
       <section id="contact" className="contact-section">
@@ -255,6 +288,6 @@ function App() {
       </footer>
     </div>
   );
-}
+}}
 
 export default App;
