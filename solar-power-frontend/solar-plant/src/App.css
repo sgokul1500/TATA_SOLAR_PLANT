@@ -97,7 +97,7 @@ html {
 }
 
 .slide:nth-child(2) {
-    background: url('https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9') center/cover;
+    background: url('https://images.unsplash.com/photo-1497435334941-8c899ee9e9') center/cover;
 }
 
 .slide:nth-child(3) {
@@ -400,4 +400,26 @@ html {
   .stats-grid {
     grid-template-columns: 1fr;
   }
+  /* Date Picker Styles */
+.date-picker {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.date-picker:focus {
+  outline: none;
+  border-color: #003057;
+  box-shadow: 0 0 0 2px rgba(0, 48, 87, 0.1);
+}
+
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.react-datepicker__input-container {
+  width: 100%;
+}
 }
